@@ -1,0 +1,175 @@
+LiNUX
+ques.Create the following users,groups and group membership
+-A group named sysadm
+-A user "harry" who belongs to sysadm as a secondary group.
+-A user "natasha" who belongs to sysadm as a secondary group.
+-A user "sarah" who does not have the access to an interactive shell and who is not a member of sysadm group.
+-"harry" "natasha"  and "sarah" should all have password of password 
+SOl:-
+cat /etc/group
+groupadd sysadm
+cat /etc/group/ -i sysadm
+useradd harry
+passwd harry same for natasha and sarah
+usermod -G sysadm harry
+usermod -G sysadm natasha
+usermod -s /sbin/nologin sarah
+####################################################################################################################
+ques.create a collabrative directory /shared/sysadm with th following characteristics:
+-Group owernship of /shared/sysadm is sysadm
+-The directory should be readable , writable and accesiable to member of sysadm . but not to any other user.
+-Files created in /shared/sysadm automatically have group owernshipset to the sysadm group
+sol:-
+mkdir -p /shared/sysadm
+ll -d /shared/sysadm
+chgrp sysadm /shared/sysadm
+ll -d /shared/syadm
+chmod 770 /shared/sysadm
+ll -d /shared/syadm
+chmod g+s /shared/sysadm
+su -harry
+cd /shared/sysadm
+ll touch harry-file
+###########################################################################################################################
+git server, client1 , client2
+#########
+git-server
+##########
+sudo su -
+passwd root
+yum install git
+hostnamectl set-hostname git-server.example.com
+bash
+vim /etc/hosts
+ping
+vim /etc/ssh/sshd_config    (remove # for "permit root login" and change value to yes and  PasswordAuthentication ,PermitEmptyPasswords to yes)
+systemctl restart sshd
+systemctl start sshd
+cd project
+git init --bare
+git log
+
+###########
+git-client1
+###########
+sudo su -
+hostnamectl set-hostname git-client.example.com
+bash
+yum install git
+ssh-keygen
+ssh-copy-id root@172.31.35.8
+vim /etc/hosts
+ping
+mkdir my-project
+cd my-project
+git init
+vim index.html
+git add .
+git commit -m "first"
+git remote add origin root@172.31.35.8:/root/project/
+git push -u origin master
+###################################################################################################################################
+
+
+
+JENKINS
+############################################################################################################################
+medium.t2
+add port number 8080
+add ssh 
+###############
+sudo su -
+hostnamectl set-hostname jenkins.example.com
+yum update -y
+yum install java-17-amazon-corretto -y
+java -version
+ssudo wget -O /etc/yum.repos.d/jenkins.repo \
+    https://pkg.jenkins.io/redhat-stable/jenkins.repo
+rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+yum install jenkins -y
+sudo systemctl enable jenkins
+sudo systemctl start jenkins
+http://your_amazon_linux_instance_ip:8080
+cat /var/lib/jenkins/secrets/initialAdminPassword
+cd /var/lib/jenkins/workspace/
+
+#####################################################################
+DOCKER + JENKINS
+##########
+sudo su -
+hostnamectl set-hostname  docker.example.com
+bash
+yum install docker*
+systemctl start docker
+systemctl enable docker
+docker info
+docker ps
+docker run -itd --name <Name_of_container> -p 8080:8080 jenkins/jenkins
+docker ps -a
+docker exec -it <container_id> /bin/bash
+log in to <public ip-address>:8080   -- copy the directoryy
+cat <paste_directory>
+paste the password into web
+
+Add another container (add 8081 port to instance)
+docker run -itd --name <Name_of_container> -p 8080:8081 jenkins/jenkins
+docker exec -it <container_id> /bin/bash
+log in to <public ip-address>:8081   -- copy the directoryy
+cat <paste_directory>
+paste the password into web
+########################################################################
+tomcat
+#########
+sudo su -
+yum install java*
+#Download tomcat binary
+wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.106/bin/apache-tomcat-9.0.106.tar.gz
+#unzip tomcat binary
+tar -zvxf apache-tomcat-9.0.55.tar.gz
+Add Execute Permission to startup.sh & shutdown.sh
+cd apache-tomcat-9.0.55
+cd bin
+chmod +x startup.sh
+chmod +x shutdown.sh
+#########
+cd apache-tomcat-9.0.55
+find -name context.xml
+./conf/context.xml
+./webapps/examples/META-INF/context.xml
+./webapps/host-manager/META-INF/context.xml
+./webapps/manager/META-INF/context.xml
+#comment value tag sections in below all files
+vi ./webapps/examples/META-INF/context.xml
+vi ./webapps/host-manager/META-INF/context.xml
+vi ./webapps/manager/META-INF/context.xml
+#######################
+Update user information in tomcat-users.xml
+cd apache-tomcat-9.0.55
+cd conf
+
+vi tomcat-users.xml
+
+#Add below lines between <tomcat-users> tag
+
+<role rolename="manager-gui"/>
+<role rolename="manager-script"/>
+<role rolename="manager-jmx"/>
+<role rolename="manager-status"/>   
+<user username="admin" password="admin" roles="manager-gui,manager-script,manager-jmx,manager-status"/>
+<user username="deployer" password="deployer" roles="manager-script"/>
+<user username="tomcat" password="s3cret" roles="manager-gui"/>
+###########################
+Access Tomcat Web Interface
+http://server_ip:8080/
+
+You should see Tomcat welcome page.
+
+
+in jenkins server install plugins maven, deploy to container, github integration 
+in jenkins server 
+yum install maven
+mvn -v
+path has to add  into jenkins tools java and maven paths
+in build configure section post-build actions Deploy war/ear to a container  
+**/*.war 
+context - /
